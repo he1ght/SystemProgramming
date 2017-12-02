@@ -80,7 +80,12 @@ int peek(list* lp){
 // Radix Sort 0~9
 void Sorting(int* sort_list, int len)
 {
-	int Radix, i, divi;
+	int Radix, i, divi, minus_size;
+	minus_size = 0;
+	for(i=0;i<len;i++)
+		if(sort_list[i]<0)
+			minus_size++;
+
 	for(Radix = 0;Radix<10;Radix++){
 		// Radix sort init
 		list** RS_list = (list**)malloc(sizeof(list*)*10);
@@ -99,7 +104,7 @@ void Sorting(int* sort_list, int len)
 			int num = sort_list[i];
 			// printf("num: %d to insert Radix\n",num); //
 			if(num>= 0)addLast(RS_list[(num/divi)%10],num);
-			else addFirst(RS_list_minus[(((-1)*num)/divi)%10],num);
+			else addLast(RS_list_minus[(((-1)*num)/divi)%10],num);
 		}
 		if((RS_list[0]->count + RS_list_minus[0]->count) == len) break;
 		// pop all and save
@@ -110,7 +115,7 @@ void Sorting(int* sort_list, int len)
 				index++;
 			}   
 		}
-
+		index = minus_size;
 		for(i=0;i<10;i++){
 			while(!isEmpty(RS_list[i])){
 				sort_list[index] = removeFirst(RS_list[i]);
@@ -140,10 +145,14 @@ int main(int argc,char* argv[])
 	printf("Output File name is : %s \n", output_file);
 	*/
 
+	if(m<n){
+		n = m;
+	}
+
 	// read input file
 	FILE * In = fopen(input_file, "r");
 	int input_buff;
-	int div = (int)(m / n);
+	int div = (int)(((double)m) / ((double)n) + 0.5);
 	
 	// count
 	int Process_count = 0;
