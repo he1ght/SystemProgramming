@@ -6,22 +6,10 @@
 #include <string.h>
 #include <limits.h>
 
-#define NAME_POSIX "/my_mq"
-#define MSG_SIZE 10
+#include "ku_psort.h"
 
 
-// Linked List
-typedef struct _node{
-	int value;
-	struct _node* next;
-}node;
-
-typedef struct _LinkedList{
-	int count;
-	node* head;
-	node* tail;
-}list;
-
+//Linked list funcution
 void init(list* lp){
 	lp->count = 0;
 	lp->head = NULL;
@@ -41,7 +29,6 @@ void addFirst(list* lp, int value){
 		lp->head = newNode;
 	}
 	lp->count++;
-//	printf("addFirst Done : %d\n",value);
 }
 
 void addLast(list* lp, int value){
@@ -130,6 +117,9 @@ void Sorting(int* sort_list, int len)
 	}
 }
 
+/*
+   have to input ./ku_psort (Integer)m (Integer)n (char*)input_file (char*)output_file
+   */
 int main(int argc,char* argv[])
 {
 	// init File
@@ -156,7 +146,9 @@ int main(int argc,char* argv[])
 	
 	// count
 	int Process_count = 0;
-	int * toSort_data = (int*) malloc (sizeof(int)*(m -div*(n-1)));
+	int more_max_len = m-div*(n-1);
+	if(more_max_len < div) more_max_len = div;
+	int * toSort_data = (int*) malloc (sizeof(int)*more_max_len);
 	pid_t * pid = (pid_t*)malloc(sizeof(pid_t) * n);
 	int len = div;
 	int read_index;
@@ -176,7 +168,10 @@ int main(int argc,char* argv[])
 
 		list **toMerge_data = (list **)malloc(sizeof(list*)*n);
 		int i;
-		int identity = Process_count;
+		for(i=0;i<n;i++){
+			toMerge_data[i] = (list*)malloc(sizeof(list)*len);
+			init(toMerge_data[i]);
+		}
 		unsigned int prio;
 		mqdes = mq_open(NAME_POSIX, O_CREAT | O_RDONLY, 0666, &attr);
 		for(i=0;i<m;i++){
@@ -184,11 +179,6 @@ int main(int argc,char* argv[])
 			 if(mq_receive(mqdes,(char*)&recData,MSG_SIZE, &prio) == -1)
 				 perror("receive fail\n");
 //			 printf("[mq: %d] receive [%d] : %d - current on queue : %ld\n",mqdes,Process_count,recData,attr.mq_curmsgs);
-			 if(Process_count != identity){
-				 identity = Process_count;
-				 toMerge_data[Process_count - 1] = (list*)malloc(sizeof(list)*len);
-				 init(toMerge_data[Process_count -1]);
-			 }
 			 addLast(toMerge_data[Process_count-1],recData);
 		 }
 
@@ -213,6 +203,9 @@ int main(int argc,char* argv[])
 		}
 		fclose(Out);
 
+		// End Entire Sort Process
+		printf("Sorting Process Done...\n");
+
 		 // close messege queue
 		 mq_close(mqdes);
 		 mq_unlink(NAME_POSIX);
@@ -221,14 +214,14 @@ int main(int argc,char* argv[])
 	}
 	else if(pid[0] == 0){
 		while(Process_count < n){
-			printf("Process_count : %d [ ",Process_count);
+//			printf("Process_count : %d [ ",Process_count);
 			read_index = 0;
 			while(read_index<div && fscanf(In,"%d",&input_buff) != EOF){
 				toSort_data[read_index] = input_buff;
-				printf("%d ",toSort_data[read_index]);
+//				printf("%d ",toSort_data[read_index]);
 				read_index ++;
 			}
-			printf("]\n");
+//			printf("]\n");
 			pid[Process_count] = fork();
 			if(pid[Process_count] > 0) {
 				break;				
@@ -239,22 +232,24 @@ int main(int argc,char* argv[])
 		if(n == Process_count){
 			read_index = 0;
 			len = m - div*(n-1);
-			printf("Process_count : %d [ ", Process_count);
+//			printf("Process_count : %d [ ", Process_count);
 			while(fscanf(In,"%d",&input_buff) != EOF){
 				toSort_data[read_index] = input_buff;
-				printf("%d ", toSort_data[read_index]);
+//				printf("%d ", toSort_data[read_index]);
 				read_index++;
 			}
-			printf("]\n");
+//			printf("]\n");
 		}
 
 		// sort each process
 		Sorting(toSort_data, len);
 		int i;
-		printf("Process_count : %d #After sort# [ ",Process_count);
+
+		// Print After Sort
+/*		printf("Process_count : %d #After sort# [ ",Process_count);
 		for(i=0;i<len;i++)printf("%d ",toSort_data[i]);
 		printf("]\n");
-
+*/
 		
 		unsigned int prio;
 		// to Merge with Posix Message :: send
