@@ -161,7 +161,7 @@ int main(int argc,char* argv[])
 		n = m;
 	}
 
-	// read input file
+	// divide list
 	FILE * In = fopen(input_file, "r");
 	int input_buff;
 	int div = (int)(((double)m) / ((double)n) + 0.5);
@@ -180,6 +180,7 @@ int main(int argc,char* argv[])
 	toSort_data[n-1].array = (int*) malloc (sizeof(int)*(m-div*(n-1)));
 	toSort_data[n-1].len = 0;
 
+	// input data
 	for(i=0;i<n-1;i++){
 		int input_buff, read_index = 0;
 		while(read_index < div && fscanf(In,"%d",&input_buff) != EOF){

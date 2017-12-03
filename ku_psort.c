@@ -155,6 +155,7 @@ int main(int argc,char* argv[])
 
 	pid[0] = fork();
 	Process_count ++;
+	int File_index = 0;
 	
 	// messege data
 	struct mq_attr attr;
@@ -216,10 +217,11 @@ int main(int argc,char* argv[])
 		while(Process_count < n){
 //			printf("Process_count : %d [ ",Process_count);
 			read_index = 0;
-			while(read_index<div && fscanf(In,"%d",&input_buff) != EOF){
+			while(File_index<m && read_index<div && fscanf(In,"%d",&input_buff) != EOF){
 				toSort_data[read_index] = input_buff;
 //				printf("%d ",toSort_data[read_index]);
 				read_index ++;
+				File_index ++;
 			}
 //			printf("]\n");
 			pid[Process_count] = fork();
@@ -233,10 +235,11 @@ int main(int argc,char* argv[])
 			read_index = 0;
 			len = m - div*(n-1);
 //			printf("Process_count : %d [ ", Process_count);
-			while(fscanf(In,"%d",&input_buff) != EOF){
+			while(File_index < m && fscanf(In,"%d",&input_buff) != EOF){
 				toSort_data[read_index] = input_buff;
 //				printf("%d ", toSort_data[read_index]);
 				read_index++;
+				File_index++;
 			}
 //			printf("]\n");
 		}
